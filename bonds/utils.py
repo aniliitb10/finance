@@ -66,5 +66,9 @@ def rcy(mkt_price: float, face_value: float, coupon_rate_pct: float, maturity: i
     """
     coupon = (face_value * coupon_rate_pct / 100) / n_coupons
     growth_rate = 1 + inv_rate / 100 / n_coupons
-    coupon_fv = coupon * np.power(growth_rate, np.arange(maturity * n_coupons - 1, -1, -1))
-    return (np.power(((np.sum(coupon_fv) + face_value) / mkt_price), 1 / (maturity * n_coupons)) - 1) * 100 * n_coupons
+
+    coupon_count = maturity * n_coupons
+    coupon_fv = coupon * np.power(growth_rate, np.arange(coupon_count))
+    total_sum_capitalized = np.sum(coupon_fv) + face_value
+
+    return (np.power(total_sum_capitalized / mkt_price, 1 / coupon_count) - 1) * 100 * n_coupons
