@@ -1,8 +1,9 @@
 import numpy_financial as npf
+import numpy as np
 from typing import List
 
 
-def get_bond_cash_flows(mkt_price: float, face_value: float, coupon_rate_pct: float, maturity: int, n_coupons: int)\
+def get_bond_cash_flow(mkt_price: float, face_value: float, coupon_rate_pct: float, maturity: int, n_coupons: int) \
         -> List[float]:
     """
     Args:
@@ -10,7 +11,10 @@ def get_bond_cash_flows(mkt_price: float, face_value: float, coupon_rate_pct: fl
         mkt_price: current market price for bond
         face_value: face value of the bond
         maturity: maturity in years/month
-        n_coupons: number of coupons every term (e.g. every month if maturity is in month, otherwise every year)
+        n_coupons: number of coupons every term e.g.:
+                1) if coupon is received every month and maturity is in month, then 1
+                2) if coupon is received every 6 months and maturity is in years: then 2
+                3) if coupon is received every year and maturity is in years: then 1
 
     Returns:
         List of all cash flows
@@ -27,10 +31,40 @@ def ytm(mkt_price: float, face_value: float, coupon_rate_pct: float, maturity: i
         mkt_price: current market price for bond
         face_value: face value of the bond
         maturity: maturity in years/month
-        n_coupons: number of coupons every term (e.g. every month if maturity is in month, otherwise every year)
+        n_coupons: number of coupons every term e.g.:
+                1) if coupon is received every month and maturity is in month, then 1
+                2) if coupon is received every 6 months and maturity is in years: then 2
+                3) if coupon is received every year and maturity is in years: then 1
 
     Returns:
         object: Yield to maturity for the bond
     """
 
-    return npf.irr(get_bond_cash_flows(mkt_price, face_value, coupon_rate_pct, maturity, n_coupons)) * 100 * n_coupons
+    return npf.irr(get_bond_cash_flow(mkt_price, face_value, coupon_rate_pct, maturity, n_coupons)) * 100 * n_coupons
+
+
+def rcy(mkt_price: float, face_value: float, coupon_rate_pct: float, maturity: int, n_coupons: int, inv_rate: float):
+    """
+    To calculate RCY (Realized Compounded Yield):
+    It calculates the net return on:
+    1) Holding a bond and getting each coupon payment on time
+    2) And investing each coupon and realizing a return of @inv_rate on investing these coupons
+
+    Args:
+        coupon_rate_pct: coupon rate of the bond
+        mkt_price: current market price for bond
+        face_value: face value of the bond
+        maturity: maturity in years/month
+        n_coupons: number of coupons every term e.g.:
+                1) if coupon is received every month and maturity is in month, then 1
+                2) if coupon is received every 6 months and maturity is in years: then 2
+                3) if coupon is received every year and maturity is in years: then 1
+        inv_rate: the rate of return on each coupon
+
+    Returns:
+        object: Realized Compounded Yield for the bond
+    """
+    coupon = (face_value * coupon_rate_pct / 100) / n_coupons
+    growth_rate = 1 + inv_rate / 100 / n_coupons
+    coupon_fv = coupon * np.power(growth_rate, np.arange(maturity * n_coupons - 1, -1, -1))
+    return (np.power(((np.sum(coupon_fv) + face_value) / mkt_price), 1 / (maturity * n_coupons)) - 1) * 100 * n_coupons
