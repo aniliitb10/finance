@@ -34,6 +34,18 @@ class UtilTestCase(unittest.TestCase):
         exp_rcy = utils.rcy(1308.87, 1000, 9.0, Interval(years=1), Interval(years=10), reinvestment_rate=3)
         self.assertAlmostEqual(4.495, exp_rcy, places=3)
 
+    def test_price(self):
+        # first calculate the ytm and then use the same ytm to calculate the current price
+        ytm = utils.ytm(900, 1000, 5.0, Interval(years=1), Interval(years=5))
+        price = utils.price(1000, 5, ytm, Interval(years=1), Interval(years=5))
+        self.assertAlmostEqual(900, price)
+
+    def test_price2(self):
+        # first calculate the ytm and then use the same ytm to calculate the current price
+        ytm = utils.ytm(888, 1000, 5.0, Interval(months=6), Interval(years=20))
+        price = utils.price(1000, 5, ytm, Interval(months=6), Interval(years=20))
+        self.assertAlmostEqual(888, price)
+
 
 if __name__ == '__main__':
     unittest.main()

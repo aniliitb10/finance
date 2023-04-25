@@ -49,3 +49,13 @@ class Bond(BaseModel):
         """
         return utils.rcy(self.market_price, self.face_value, self.coupon_rate_pct, self.coupon_period, self.tenor,
                          reinvestment_rate)
+
+    def dv01(self):
+        """
+        Calculated DV01 of the bond:
+        - first calculates the YTM (Yield To Maturity) and then calculates the price back again using YTM-0.01
+        Returns:
+            DV01 of the bond
+        """
+        ytm_01 = self.ytm() - 0.01
+        return utils.price(self.face_value, self.coupon_rate_pct, ytm_01, self.coupon_period, self.tenor)
